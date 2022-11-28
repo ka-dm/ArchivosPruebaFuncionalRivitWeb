@@ -72,15 +72,15 @@ ggplot(data_q1, aes(fill=escala, y=frecuencia, x=tareas)) +
 
 ## Plots preguntas prueba funcional
 
-Q1 = DatosEvalFun %>% 
-  group_by(Tarea, Q1) %>% 
+Q1 %>%  = DatosEvalFun %>% 
+  group_by(Tarea, Q1 %>% ) %>% 
   summarise(conteo = n()) %>% 
   ungroup() %>% 
-  rename(respuesta = Q1) %>% 
+  rename(respuesta = Q1 %>% ) %>% 
   complete(nesting(Tarea), respuesta = seq(1,5))
   expand(nesting(Tarea, conteo), respuesta = seq(1,5))
 
-  plotQ1 <- ggplot(Q1, aes(x = Tarea, y = conteo, fill = as.factor(respuesta))) + 
+  plotQ1 <- ggplot(Q1 %>% , aes(x = Tarea, y = conteo, fill = as.factor(respuesta))) + 
     geom_bar(position="dodge", stat = "identity") + 
     labs(fill = "Escala") +
     ylim(0, 10) +
@@ -88,7 +88,6 @@ Q1 = DatosEvalFun %>%
     labs(
       title = "Resultados de la pregunta 1:",
       subtitle = "\"En general, estoy satisfecho con la facilidad para completar esta tarea.\"",
-      caption = "Datos obtenidos de la prueba funcional - RivitWeb.",
       x = "Tareas",
       y = "Frecuencia"
     )
@@ -99,6 +98,20 @@ Q1 = DatosEvalFun %>%
     panel.grid.minor.x = element_blank()
   )
 
+  # Calculo de mediana para la pregunta 1
+  Q1Count <- data.frame(
+    Category  = c (Q1$respuesta), 
+    Frequency= replace(Q1$conteo, is.na(Q1$conteo), 0)
+  )
+  
+  respQ1 = aggregate(x= Q1Count$Frequency,              
+                   by = list(Q1Count$Category),        
+                   FUN = sum)  
+  respQ1
+  median(respQ1$x)
+  # -------------------------------------
+  
+  
 Q2 = DatosEvalFun %>% 
   group_by(Tarea, Q2) %>% 
   summarise(conteo = n()) %>% 
@@ -115,7 +128,6 @@ plotQ2 <- ggplot(Q2, aes(x = Tarea, y = conteo, fill = as.factor(respuesta))) +
   labs(
     title = "Resultados de la pregunta 2:",
     subtitle = "\"En general, estoy satisfecho con la cantidad de tiempo que \ntomó completar esta tarea.\"",
-    caption = "Datos obtenidos de la prueba funcional - RivitWeb.",
     x = "Tareas",
     y = "Frecuencia"
   )
@@ -126,6 +138,20 @@ plotQ2 + theme_classic() + theme(
   panel.grid.minor.x = element_blank()
 )
 
+# Calculo de mediana para la pregunta 2
+Q2Count <- data.frame(
+  Category  = c (Q2$respuesta), 
+  Frequency= replace(Q2$conteo, is.na(Q2$conteo), 0)
+)
+
+respQ2 = aggregate(x= Q2Count$Frequency,              
+                   by = list(Q2Count$Category),        
+                   FUN = sum)  
+respQ2
+median(respQ2$x)
+
+mean(respQ2$x)
+# -------------------------------------
 
 Q3 = DatosEvalFun %>% 
   group_by(Tarea, Q3) %>% 
@@ -143,7 +169,6 @@ plotQ3 <- ggplot(Q3, aes(x = Tarea, y = conteo, fill = as.factor(respuesta))) +
   labs(
     title = "Resultados de la pregunta 3:",
     subtitle = "\"En general, estoy satisfecho con la información de soporte \n(ayuda en línea, mensaje, documentación) al completar esta tarea.\"",
-    caption = "Datos obtenidos de la prueba funcional - RivitWeb.",
     x = "Tareas",
     y = "Frecuencia"
   )
@@ -155,41 +180,56 @@ plotQ3 + theme_classic() + theme(
 )
 
 
-# Completitud de tareas
+# Completitud de tareas ########################################################
 
-tareaCompetada = DatosEvalFun %>% 
+tarCom = DatosEvalFun %>% 
   group_by(Tarea, Completado) %>% 
-  summarise(conteo = n())
+  summarise(conteo = n(), fr = n()/10)
 
-tareaCompetada = DatosEvalFun %>% 
+tareaCompletada = DatosEvalFun %>% 
   count(Tarea, Completado) %>% 
   ungroup() %>% 
   rename(respuesta = n) %>% 
   complete(nesting(Tarea), Completado)
 
-expand(nesting(Tarea, n), respuesta = c(NA))
 
-
-plotTareaComp <- ggplot(tareaCompetada, aes(x = Tarea, y = respuesta, fill = Completado)) + 
+# version 1
+plotTareaComp <- ggplot(tareaCompletada, aes(x = Tarea, y = respuesta, fill = Completado)) + 
   geom_bar(position="dodge", stat = "identity") + 
   labs(fill = "¿Completada?") +
   ylim(0, 10) +
   scale_fill_manual(values=c("#F24405","#5A7340")) +
   labs(
     title = "Resultados de completitud de tareas",
-    caption = "Datos obtenidos de la prueba funcional - RivitWeb.",
     x = "Tareas",
     y = "Frecuencia"
   )
 
-plotTareaComp + theme_classic() + theme(
-  panel.grid.major = element_line(colour = "gray", linetype = "dotted"),
+# version 2
+plotTareaComp <- ggplot(tareaCompletada, 
+                        aes(x = Tarea, y = respuesta, fill = Completado)) + 
+  geom_bar(stat = "identity") + 
+  labs(fill = "¿Completada?") +
+  ylim(0, 10) +
+  scale_fill_manual(values=c("#F24405","#5A7340")) +
+  labs(
+    title = "Resultados de completitud de tareas",
+    x = "Tareas",
+    y = "Frecuencia"
+  )
+
+plotTareaComp +
+geom_text(aes(y = respuesta, label = respuesta), 
+          position = position_stack(vjust = 0.5),
+          color="white", 
+          size=3.5) + 
+  theme_classic() + theme(
   panel.grid.major.x = element_blank(),
   panel.grid.minor.x = element_blank()
 )
 
 
-# Graficos demograficos
+# Graficos demograficos ########################################################
 
 library(scales)
 library(dplyr)
@@ -197,6 +237,18 @@ library(dplyr)
 datosDem = DatosEvalFun %>% 
   group_by(Nombre, Sexo, Edad) %>% 
   summarise(conteo = n())
+
+edadMedia = median(datosDem$Edad)
+edadMedia
+
+edadPromedio = mean(datosDem$Edad)
+edadPromedio
+
+edadMin = min(datosDem$Edad)
+edadMin
+
+edadMax = max(datosDem$Edad)
+edadMax
 
 countMujeres = datosDem %>% 
   group_by(Sexo) %>% 
@@ -213,7 +265,10 @@ ggplot(countMujeres,aes(x="",y=conteo, fill=Sexo))+
   theme_void()+
   labs(
     title = "Porcentaje de Participación",
-    caption = "Datos obtenidos de la prueba funcional - RivitWeb."
   )
+
+
+
+
 
 
