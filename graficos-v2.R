@@ -5,9 +5,10 @@ install.packages("dplyr")
 install.packages("readxl")
 install.packages("psych")
 install.packages("ggplot2")
+install.packages('forecast', dependencies = TRUE)
 
 # Definiendo la carpeta de trabajo
-setwd("/home/kevin/Documents/Trabajo de Grado 2022/PruebaFuncional")
+setwd("/home/uriel/Documentos/R.-Studio-Workspace/ArchivosPruebaFuncionalRivitWeb")
 # Revisando que se cambio la ruta de la carpeta
 getwd()
 
@@ -41,9 +42,25 @@ datos_tarea_1 = DatosEvalFun %>%
 
 View(datos_tarea_1)
 
-mean_t1_q1 = mean(datos_tarea_1$Q1) 
-mean_t1_q2 = mean(datos_tarea_1$Q2) 
-mean_t1_q3 = mean(datos_tarea_1$Q3) 
+q1_sort = sort(datos_tarea_1$Q1)
+q2_sort = sort(datos_tarea_1$Q2)
+q3_sort = sort(datos_tarea_1$Q3)
+
+mediana_t1_q1 = median(q1_sort)
+mediana_t1_q2 = median(q2_sort)
+mediana_t1_q3 = median(q3_sort)
+
+datos_medianas = DatosEvalFun %>%
+  select(Tarea, Q1, Q2, Q3) %>% 
+  group_by(Tarea) %>% 
+  summarise(mediana_q1 = median(sort(Q1)), mediana_q2 = median(sort(Q2)), mediana_q3 = median(sort(Q3)))
+  
+View(datos_medianas)
+
+datos_mediana_medianas_q1 = median(sort(datos_medianas$mediana_q1)) 
+datos_mediana_medianas_q1
+  
+
 
 # Graficas ###############################################################################
 
